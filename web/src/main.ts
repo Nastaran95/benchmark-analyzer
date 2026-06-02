@@ -53,6 +53,19 @@ function formatSpaceSize(size: number | null | undefined): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
 
+const CODE_NOT_AVAILABLE =
+  "Code not available for this attempt (only metadata was stored).";
+
+function attemptCodeText(
+  attempt: { code?: string | null } | undefined
+): string {
+  const code = attempt?.code;
+  if (code != null && code.trim() !== "") {
+    return code;
+  }
+  return CODE_NOT_AVAILABLE;
+}
+
 function formatLimitLine(summary: ProblemSummary): string {
   const reason = summary.stop_reason || "";
   if (reason === "complete") {
@@ -331,10 +344,11 @@ function renderModal(detail: ProblemDetail): void {
     .join("");
 
   const active = codes[activeCodeTab] ?? codes[0];
-  const codeText =
-    active?.code ??
-    detail.generated_codes.final_code ??
-    "(no generated code available for this cell)";
+  const codeText = codes.length
+    ? attemptCodeText(active)
+    : CODE_NOT_AVAILABLE;
+  const codeUnavailable =
+    codeText === CODE_NOT_AVAILABLE && codes.length > 0;
 
   const dvPills = detail.decision_variables
     .map((v) => `<span class="pill">${escapeHtml(v)}</span>`)
@@ -384,7 +398,11 @@ function renderModal(detail: ProblemDetail): void {
           <h3>Generated code${hasTabs ? " (by attempt)" : ""}</h3>
           ${hasTabs ? `<div class="code-tabs">${tabs}</div>` : ""}
           ${active?.error_summary ? `<p class="stats">${escapeHtml(active.error_summary)}</p>` : ""}
-          <pre class="pre-block code-panel">${escapeHtml(codeText)}</pre>
+          ${
+            codeUnavailable
+              ? `<p class="code-unavailable">${escapeHtml(codeText)}</p>`
+              : `<pre class="pre-block code-panel">${escapeHtml(codeText)}</pre>`
+          }
         </section>
       </div>
     </div>

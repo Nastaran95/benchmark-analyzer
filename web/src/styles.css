@@ -450,3 +450,14 @@ table.benchmark-table thead th.sticky-col-3 {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+.code-unavailable {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--missing-bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}

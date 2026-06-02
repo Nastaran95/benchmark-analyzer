@@ -130,6 +130,7 @@ def get_generated_codes(
             }
         )
 
+    # Only use top-level code when there is no per-attempt history (single stored result).
     if not attempts and final_code:
         attempts = [
             {
@@ -140,16 +141,6 @@ def get_generated_codes(
                 "error_summary": label_data.get("final_error_summary", ""),
             }
         ]
-
-    if attempts and final_code:
-        for entry in reversed(attempts):
-            if entry.get("label_match") or entry.get("exec_status") == "ok":
-                if not entry.get("code"):
-                    entry["code"] = final_code
-                break
-        else:
-            if not attempts[-1].get("code"):
-                attempts[-1]["code"] = final_code
 
     return {
         "llm": llm,

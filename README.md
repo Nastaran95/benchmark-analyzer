@@ -16,19 +16,8 @@ python scripts/bundle_data.py
 Custom source paths:
 
 ```powershell
-python scripts/bundle_data.py `
-  --jsonl dcp-bench-open.jsonl `
-  --status-csv "C:\...\CPJudgeBench\logs\benchmark-status.csv" `
-  --data-storage "C:\...\CPJudgeBench\data-storage" `
-  --output data/benchmark-bundle.json
+python scripts/bundle_data.py 
 ```
-
-| Source | Default |
-|--------|---------|
-| Problems | `dcp-bench-open.jsonl` |
-| CSP/COP summary | `dcp_bench_open_summary.csv` |
-| Generation status | `CPJudgeBench/logs/benchmark-status.csv` |
-| Generated models | `CPJudgeBench/data-storage/<problem_id>/candidates/` |
 
 Override the bundle location for the app with `BENCHMARK_BUNDLE`.
 
