@@ -85,7 +85,7 @@ That URL is **fully public** — anyone with the link can open it.
 
 ## Step 4 — Update the live site later
 
-1. Run `python scripts/bundle_data.py` when CPJudgeBench data changes.
+1. Run `python scripts/bundle_data.py` when benhmark data changes.
 2. `git add -f data/benchmark-bundle.json`
 3. `git commit` and `git push`
 

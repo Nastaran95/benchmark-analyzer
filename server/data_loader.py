@@ -116,31 +116,49 @@ def get_generated_codes(
     attempts: list[dict[str, Any]] = []
     history = label_data.get("attempt_history") or []
     final_code = label_data.get("code")
+    attempts_used = label_data.get("attempts_used")
 
-    for item in history:
-        attempt_num = item.get("attempt", len(attempts) + 1)
-        code = item.get("code")
-        attempts.append(
-            {
-                "attempt": attempt_num,
-                "code": code,
-                "exec_status": item.get("exec_status"),
-                "observed_label": item.get("observed_label"),
-                "error_summary": item.get("error_summary", ""),
-            }
-        )
+    def _attempt_entry(
+        attempt_num: int,
+        code: str | None,
+        *,
+        exec_status: str | None = None,
+        observed_label: str | None = None,
+        error_summary: str = "",
+    ) -> dict[str, Any]:
+        return {
+            "attempt": attempt_num,
+            "code": code,
+            "exec_status": exec_status or label_data.get("final_exec_status"),
+            "observed_label": observed_label or label_data.get("final_observed_label"),
+            "error_summary": error_summary,
+        }
 
-    # Only use top-level code when there is no per-attempt history (single stored result).
-    if not attempts and final_code:
-        attempts = [
-            {
-                "attempt": 1,
-                "code": final_code,
-                "exec_status": label_data.get("final_exec_status"),
-                "observed_label": label_data.get("final_observed_label"),
-                "error_summary": label_data.get("final_error_summary", ""),
-            }
-        ]
+    if not history:
+        # No per-attempt history: only top-level code exists — show it on the last tab.
+        if final_code:
+            last_num = max(1, int(attempts_used or 1))
+            for i in range(1, last_num):
+                attempts.append(_attempt_entry(i, None))
+            attempts.append(_attempt_entry(last_num, final_code))
+    else:
+        for item in history:
+            attempt_num = item.get("attempt", len(attempts) + 1)
+            attempts.append(
+                _attempt_entry(
+                    attempt_num,
+                    item.get("code"),
+                    exec_status=item.get("exec_status"),
+                    observed_label=item.get("observed_label"),
+                    error_summary=item.get("error_summary", ""),
+                )
+            )
+        # History metadata only (no stored codes): final code belongs on the last attempt.
+        if attempts and final_code:
+            last = attempts[-1]
+            stored = last.get("code")
+            if not stored or not str(stored).strip():
+                last["code"] = final_code
 
     return {
         "llm": llm,
