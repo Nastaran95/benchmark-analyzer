@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+web/node_modules/
+web/dist/
+# Regenerate with: python scripts/bundle_data.py
+data/benchmark-bundle.json

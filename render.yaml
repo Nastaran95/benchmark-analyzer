@@ -1,0 +1,12 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# After connecting this repo on Render, it creates a free public web service.
+
+services:
+  - type: web
+    name: benchmark-analyzer
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/meta
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
