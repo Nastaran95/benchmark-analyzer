@@ -13,9 +13,15 @@
   --missing: #64748b;
   --missing-bg: rgba(100, 116, 139, 0.15);
   --family-bg: #15202b;
+  --row-excluded-bg: #1c1a14;
+  --row-excluded-border: #6b5a2a;
+  --sticky-w-index: 44px;
   --sticky-w-family: 130px;
   --sticky-w-id: 160px;
   --sticky-w-summary: 118px;
+  --sticky-left-family: var(--sticky-w-index);
+  --sticky-left-id: calc(var(--sticky-w-index) + var(--sticky-w-family));
+  --sticky-left-summary: calc(var(--sticky-left-id) + var(--sticky-w-id));
   --radius: 8px;
   --font: "DM Sans", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, monospace;
@@ -112,6 +118,14 @@ table.benchmark-table td {
   vertical-align: middle;
 }
 
+table.benchmark-table tr.row-excluded-generation td {
+  background: var(--row-excluded-bg);
+}
+
+table.benchmark-table tr.row-excluded-generation td.sticky-col-index {
+  box-shadow: inset 3px 0 0 var(--row-excluded-border);
+}
+
 table.benchmark-table th {
   background: var(--surface-2);
   font-weight: 600;
@@ -130,10 +144,28 @@ table.benchmark-table thead tr:nth-child(2) th {
   color: var(--muted);
 }
 
+table.benchmark-table th.sticky-col-index,
+table.benchmark-table td.sticky-col-index {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--family-bg);
+  text-align: center;
+  min-width: var(--sticky-w-index);
+  width: var(--sticky-w-index);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+table.benchmark-table td.row-num {
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
 table.benchmark-table th.sticky-col,
 table.benchmark-table td.sticky-col {
   position: sticky;
-  left: 0;
+  left: var(--sticky-left-family);
   z-index: 3;
   background: var(--family-bg);
   text-align: left;
@@ -143,7 +175,7 @@ table.benchmark-table td.sticky-col {
 table.benchmark-table th.sticky-col-2,
 table.benchmark-table td.sticky-col-2 {
   position: sticky;
-  left: var(--sticky-w-family);
+  left: var(--sticky-left-id);
   z-index: 3;
   background: var(--family-bg);
   text-align: left;
@@ -155,7 +187,7 @@ table.benchmark-table td.sticky-col-2 {
 table.benchmark-table th.sticky-col-3,
 table.benchmark-table td.sticky-col-3 {
   position: sticky;
-  left: calc(var(--sticky-w-family) + var(--sticky-w-id));
+  left: var(--sticky-left-summary);
   z-index: 3;
   background: var(--family-bg);
   text-align: left;
@@ -166,11 +198,19 @@ table.benchmark-table th.sorted-col {
   color: var(--accent);
 }
 
+table.benchmark-table thead th.sticky-col-index,
 table.benchmark-table thead th.sticky-col,
 table.benchmark-table thead th.sticky-col-2,
 table.benchmark-table thead th.sticky-col-3 {
   z-index: 4;
   background: var(--surface-2);
+}
+
+table.benchmark-table tr.row-excluded-generation td.sticky-col-index,
+table.benchmark-table tr.row-excluded-generation td.sticky-col,
+table.benchmark-table tr.row-excluded-generation td.sticky-col-2,
+table.benchmark-table tr.row-excluded-generation td.sticky-col-3 {
+  background: var(--row-excluded-bg);
 }
 
 .summary-cell {
@@ -313,8 +353,8 @@ table.benchmark-table thead th.sticky-col-3 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  width: min(960px, 100%);
-  max-height: 90vh;
+  width: min(1280px, 96vw);
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
@@ -386,6 +426,50 @@ table.benchmark-table thead th.sticky-col-3 {
   word-break: break-word;
   max-height: 220px;
   margin: 0;
+}
+
+.section-compare .pre-block.code-panel {
+  max-height: min(50vh, 420px);
+}
+
+.code-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.code-compare-pane {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-compare-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.code-compare-pane:first-child .code-compare-label {
+  color: #7dd3fc;
+}
+
+.code-compare-pane:last-child .code-compare-label {
+  color: var(--accent);
+}
+
+.code-compare-pane .code-unavailable {
+  flex: 1;
+}
+
+@media (max-width: 800px) {
+  .code-compare {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pill-row {

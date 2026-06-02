@@ -11,6 +11,12 @@ function cellKey(language: string, label: string): string {
   return `${language}|${label}`;
 }
 
+function isExcludedFromGeneration(summary: ProblemSummary | null): boolean {
+  if (!summary?.stop_reason) return false;
+  const reason = summary.stop_reason.toLowerCase();
+  return reason === "time_limit" || reason === "solution_limit";
+}
+
 function filterRows(filter: string, familyFilter: string): TableRow[] {
   const q = filter.trim().toLowerCase();
   return rows
@@ -137,6 +143,7 @@ function renderTableHeader(): string {
   return `
     <thead>
       <tr>
+        <th class="sticky-col-index" rowspan="2">#</th>
         <th class="sticky-col" rowspan="2">Family</th>
         <th class="sticky-col-2 sorted-col" rowspan="2" title="Sorted A→Z">Problem ID ↑</th>
         <th class="sticky-col-3" rowspan="2" title="CSP/COP · solution space · stop reason">Type / Space</th>
@@ -193,14 +200,20 @@ function renderTableBody(filter: string, familyFilter: string): string {
   const filtered = filterRows(filter, familyFilter);
 
   const body = filtered
-    .map((row) => {
+    .map((row, index) => {
       const cells = meta!.languages
         .flatMap((lang) =>
           meta!.labels.map((label) => renderCell(row, lang, label))
         )
         .join("");
+      const excluded = isExcludedFromGeneration(row.summary);
+      const rowClass = excluded ? "row-excluded-generation" : "";
+      const rowTitle = excluded
+        ? "Excluded from data generation (reference run hit time or solution limit)"
+        : "";
       return `
-        <tr>
+        <tr class="${rowClass}"${rowTitle ? ` title="${escapeHtml(rowTitle)}"` : ""}>
+          <td class="sticky-col-index row-num">${index + 1}</td>
           <td class="sticky-col"><span class="family-tag" title="${escapeHtml(row.family)}">${escapeHtml(row.family)}</span></td>
           <td class="sticky-col-2">${escapeHtml(row.problem_id)}</td>
           ${renderSummaryCell(row.summary)}
@@ -379,10 +392,6 @@ function renderModal(detail: ProblemDetail): void {
           <pre class="pre-block">${escapeHtml(detail.description)}</pre>
         </section>
         <section class="section">
-          <h3>Reference model</h3>
-          <pre class="pre-block">${escapeHtml(detail.model)}</pre>
-        </section>
-        <section class="section">
           <h3>Decision variables</h3>
           <div class="pill-row">${dvPills || "<span class='pill'>—</span>"}</div>
         </section>
@@ -394,15 +403,24 @@ function renderModal(detail: ProblemDetail): void {
           <h3>Sample solution</h3>
           <pre class="pre-block">${escapeHtml(formatJson(detail.example_solution))}</pre>
         </section>
-        <section class="section">
-          <h3>Generated code${hasTabs ? " (by attempt)" : ""}</h3>
+        <section class="section section-compare">
+          <h3>Code comparison${hasTabs ? ` · attempt ${active?.attempt ?? activeCodeTab + 1}` : ""}</h3>
           ${hasTabs ? `<div class="code-tabs">${tabs}</div>` : ""}
           ${active?.error_summary ? `<p class="stats">${escapeHtml(active.error_summary)}</p>` : ""}
-          ${
-            codeUnavailable
-              ? `<p class="code-unavailable">${escapeHtml(codeText)}</p>`
-              : `<pre class="pre-block code-panel">${escapeHtml(codeText)}</pre>`
-          }
+          <div class="code-compare">
+            <div class="code-compare-pane">
+              <h4 class="code-compare-label">Reference model</h4>
+              <pre class="pre-block code-panel">${escapeHtml(detail.model)}</pre>
+            </div>
+            <div class="code-compare-pane">
+              <h4 class="code-compare-label">Generated</h4>
+              ${
+                codeUnavailable
+                  ? `<p class="code-unavailable">${escapeHtml(codeText)}</p>`
+                  : `<pre class="pre-block code-panel">${escapeHtml(codeText)}</pre>`
+              }
+            </div>
+          </div>
         </section>
       </div>
     </div>
