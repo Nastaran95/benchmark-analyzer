@@ -10,7 +10,7 @@ BUNDLE_PATH = Path(
     )
 )
 
-LANGUAGES = ["minizinc", "CPMpy"]
+LANGUAGES = ["minizinc", "CPMpy", "pyCSP3"]
 
 CORRECTNESS_LABELS = [
     "non-executable",

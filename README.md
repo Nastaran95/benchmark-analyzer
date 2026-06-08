@@ -1,6 +1,6 @@
 # Benchmark Analyzer
 
-Web app to visualize DCP-Bench generation status across problems, languages (MiniZinc, CPMpy), and semantic correctness labels.
+Web app to visualize DCP-Bench generation status across problems, languages (MiniZinc, CPMpy, pyCSP3), and semantic correctness labels.
 
 All runtime data lives in a single bundled file: `data/benchmark-bundle.json`.
 

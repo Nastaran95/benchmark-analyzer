@@ -49,10 +49,39 @@ export type ProblemDetail = {
     final_code: string | null;
     attempts_used?: number;
     final_observed_label?: string;
+    final_fp?: number | null;
+    final_fn?: number | null;
+    final_candidate_space_size?: number | null;
+    final_candidate_truncated?: boolean | null;
   };
 };
 
 export type Meta = {
   languages: string[];
   labels: string[];
+};
+
+export type CaseStats = {
+  cases: number;
+  succ: number;
+  fail: number;
+  rate: number;
+  tot: number;
+  avg: number;
+  med: number;
+  first: number;
+  opp: number;
+};
+
+export type LangDetailStats = {
+  all: CaseStats;
+  labels: Record<string, CaseStats>;
+};
+
+export type DetailedStats = {
+  problem_count: number;
+  label_keys: string[];
+  languages: string[];
+  overall: CaseStats;
+  per_language: Record<string, LangDetailStats>;
 };

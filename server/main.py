@@ -8,6 +8,7 @@ from .config import CORRECTNESS_LABELS, LANGUAGES
 from .data_loader import (
     BundleNotFoundError,
     build_table_rows,
+    compute_detailed_stats,
     get_problem_detail,
     load_bundle,
 )
@@ -39,6 +40,14 @@ def meta():
 def table():
     try:
         return {"rows": build_table_rows()}
+    except BundleNotFoundError as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+@app.get("/api/stats")
+def stats():
+    try:
+        return compute_detailed_stats()
     except BundleNotFoundError as exc:
         raise HTTPException(503, str(exc)) from exc
 

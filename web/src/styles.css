@@ -15,10 +15,12 @@
   --family-bg: #15202b;
   --row-excluded-bg: #1c1a14;
   --row-excluded-border: #6b5a2a;
+  --row-slow-runtime-bg: #141c22;
+  --row-slow-runtime-border: #3d8a9a;
   --sticky-w-index: 44px;
   --sticky-w-family: 130px;
   --sticky-w-id: 160px;
-  --sticky-w-summary: 118px;
+  --sticky-w-summary: 128px;
   --sticky-left-family: var(--sticky-w-index);
   --sticky-left-id: calc(var(--sticky-w-index) + var(--sticky-w-family));
   --sticky-left-summary: calc(var(--sticky-left-id) + var(--sticky-w-id));
@@ -61,6 +63,128 @@ header.page-header p {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* ── Generation Statistics card ── */
+.stats-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.stats-heading {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stats-subtitle {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.stats-table-wrap {
+  overflow-x: auto;
+}
+
+.stats-table {
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  width: 100%;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.45rem 1.1rem 0.45rem 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.stats-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.55rem;
+}
+
+.stats-table td.stats-label,
+.stats-table th.stats-label {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+  min-width: 90px;
+}
+
+.stats-table .stats-col {
+  min-width: 100px;
+}
+
+.stats-table .stats-overall {
+  border-left: 1px solid var(--border);
+  padding-left: 1.1rem;
+}
+
+.stats-meta-row td {
+  color: var(--text);
+  padding-top: 0.55rem;
+}
+
+.stats-meta-row:first-child td {
+  padding-top: 0.7rem;
+}
+
+.stats-divider td {
+  height: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.stats-label-row td {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+.stats-short {
+  font-variant: small-caps;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: default;
+}
+
+.stats-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.stats-pct {
+  margin-left: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Label colour accents */
+.lstat-eq      .stats-short { color: #2dd4a0; }
+.lstat-uns     .stats-short { color: #f87171; }
+.lstat-inc     .stats-short { color: #fb923c; }
+.lstat-mix     .stats-short { color: #c084fc; }
+.lstat-nonexec .stats-short { color: #64748b; }
+
+.lstat-eq      .stats-count { color: #2dd4a0; }
+.lstat-uns     .stats-count { color: #f87171; }
+.lstat-inc     .stats-count { color: #fb923c; }
+.lstat-mix     .stats-count { color: #c084fc; }
+.lstat-nonexec .stats-count { color: #94a3b8; }
 
 .toolbar {
   display: flex;
@@ -124,6 +248,21 @@ table.benchmark-table tr.row-excluded-generation td {
 
 table.benchmark-table tr.row-excluded-generation td.sticky-col-index {
   box-shadow: inset 3px 0 0 var(--row-excluded-border);
+}
+
+table.benchmark-table tr.row-slow-runtime td {
+  background: var(--row-slow-runtime-bg);
+}
+
+table.benchmark-table tr.row-slow-runtime td.sticky-col-index {
+  box-shadow: inset 3px 0 0 var(--row-slow-runtime-border);
+}
+
+table.benchmark-table tr.row-slow-runtime td.sticky-col-index,
+table.benchmark-table tr.row-slow-runtime td.sticky-col,
+table.benchmark-table tr.row-slow-runtime td.sticky-col-2,
+table.benchmark-table tr.row-slow-runtime td.sticky-col-3 {
+  background: var(--row-slow-runtime-bg);
 }
 
 table.benchmark-table th {
@@ -246,6 +385,12 @@ table.benchmark-table tr.row-excluded-generation td.sticky-col-3 {
 .summary-space {
   color: var(--text);
   font-family: var(--mono);
+}
+
+.summary-runtime {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.65rem;
 }
 
 .summary-limit {
@@ -544,4 +689,170 @@ table.benchmark-table tr.row-excluded-generation td.sticky-col-3 {
   color: var(--muted);
   font-size: 0.85rem;
   font-style: italic;
+}
+
+/* ── Detailed stats table ── */
+.dstat-card {
+  margin-top: 0;
+}
+
+.dstat-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.dstat-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+  padding: 0.4rem 0.7rem 0.5rem;
+  white-space: nowrap;
+}
+
+.dstat-table td {
+  padding: 0.32rem 0.7rem;
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.dstat-label-col {
+  text-align: left !important;
+  min-width: 80px;
+}
+
+.dstat-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+
+.dstat-succ { color: var(--success); }
+.dstat-fail { color: var(--fail); }
+.dstat-opp  { color: var(--accent); }
+
+/* Rate badge */
+.dstat-rate {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.rate-high {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.rate-mid {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+}
+.rate-low {
+  background: var(--fail-bg);
+  color: var(--fail);
+}
+
+/* Overall row */
+.dstat-overall td {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Per-language header */
+.dstat-lang-header td {
+  background: var(--surface-2);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+
+/* "All" aggregate row per language */
+.dstat-lang-all td {
+  background: color-mix(in srgb, var(--surface-2) 30%, transparent);
+  font-weight: 600;
+}
+
+/* Per-label sub rows */
+.dstat-sub .dstat-label-col {
+  padding-left: 1.4rem;
+}
+
+.dstat-short {
+  font-variant: small-caps;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Reuse label colours from the summary card */
+.lstat-eq      .dstat-short { color: #2dd4a0; }
+.lstat-uns     .dstat-short { color: #f87171; }
+.lstat-inc     .dstat-short { color: #fb923c; }
+.lstat-mix     .dstat-short { color: #c084fc; }
+.lstat-nonexec .dstat-short { color: #94a3b8; }
+
+.dstat-all-label strong { color: var(--text); }
+
+.dstat-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Metrics row (FP / FN / Candidate space) ── */
+.metrics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.metric-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.metric-label {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.metric-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.metric-value.metric-good {
+  color: var(--success);
+}
+
+.metric-value.metric-bad {
+  color: var(--fail);
+}
+
+.metric-value.metric-na {
+  color: var(--muted);
+}
+
+.metric-value.metric-space {
+  color: var(--accent);
 }

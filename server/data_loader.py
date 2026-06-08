@@ -166,6 +166,128 @@ def get_generated_codes(
         "final_code": final_code,
         "attempts_used": label_data.get("attempts_used"),
         "final_observed_label": label_data.get("final_observed_label"),
+        "final_fp": label_data.get("final_fp"),
+        "final_fn": label_data.get("final_fn"),
+        "final_candidate_space_size": label_data.get("final_candidate_space_size"),
+        "final_candidate_truncated": label_data.get("final_candidate_truncated"),
+    }
+
+
+def compute_detailed_stats() -> dict[str, Any]:
+    bundle = load_bundle()
+    gbp: dict[str, Any] = bundle.get("generation_by_problem", {})
+
+    all_problems: list[dict[str, Any]] = sorted(
+        bundle["problems"], key=lambda p: p["id"]
+    )
+    problem_ids = {p["id"] for p in all_problems}
+
+    LABEL_KEYS = [
+        "equivalent",
+        "unsound",
+        "incomplete",
+        "unsound-incomplete",
+        "non-executable",
+    ]
+    VALID_LABELS = set(LABEL_KEYS)
+    languages: list[str] = bundle.get("meta", {}).get("languages", LANGUAGES)
+
+    # per_lang_label[lang][label] = list of case dicts
+    per_lang_label: dict[str, dict[str, list[dict[str, Any]]]] = {
+        lang: {lbl: [] for lbl in LABEL_KEYS} for lang in languages
+    }
+
+    for pid in problem_ids:
+        gen_data = gbp.get(pid)
+        if not gen_data:
+            continue
+        llm_key = next(iter(gen_data), None)
+        if not llm_key:
+            continue
+        llm_data = gen_data[llm_key]
+
+        for lang in languages:
+            if lang not in llm_data:
+                continue
+            for lbl in LABEL_KEYS:
+                v = llm_data[lang].get(lbl)
+                if v is None:
+                    continue
+                attempts_used = int(v.get("attempts_used") or 1)
+                ok = bool(v.get("ok"))
+                final_obs: str = v.get("final_observed_label") or ""
+                target: str = v.get("target_label_attempted") or lbl
+                history: list[dict[str, Any]] = v.get("attempt_history") or []
+
+                first_ok = bool(
+                    history and history[0].get("observed_label") == lbl
+                )
+                opp = (
+                    not ok
+                    and bool(final_obs)
+                    and final_obs in VALID_LABELS
+                    and final_obs != target
+                )
+
+                per_lang_label[lang][lbl].append(
+                    {
+                        "attempts": attempts_used,
+                        "ok": ok,
+                        "first_ok": first_ok,
+                        "opp": opp,
+                    }
+                )
+
+    def _aggregate(cases: list[dict[str, Any]]) -> dict[str, Any]:
+        if not cases:
+            return {
+                "cases": 0, "succ": 0, "fail": 0, "rate": 0.0,
+                "tot": 0, "avg": 0.0, "med": 0.0, "first": 0, "opp": 0,
+            }
+        n = len(cases)
+        succ = sum(1 for c in cases if c["ok"])
+        tot = sum(c["attempts"] for c in cases)
+        sorted_att = sorted(c["attempts"] for c in cases)
+        mid = len(sorted_att) // 2
+        med = (
+            float(sorted_att[mid])
+            if len(sorted_att) % 2 == 1
+            else (sorted_att[mid - 1] + sorted_att[mid]) / 2.0
+        )
+        return {
+            "cases": n,
+            "succ": succ,
+            "fail": n - succ,
+            "rate": round(succ / n * 100, 1),
+            "tot": tot,
+            "avg": round(tot / n, 2),
+            "med": med,
+            "first": sum(1 for c in cases if c["first_ok"]),
+            "opp": sum(1 for c in cases if c["opp"]),
+        }
+
+    result_langs: dict[str, Any] = {}
+    all_cases: list[dict[str, Any]] = []
+
+    for lang in languages:
+        lang_cases: list[dict[str, Any]] = []
+        lang_labels: dict[str, Any] = {}
+        for lbl in LABEL_KEYS:
+            cases = per_lang_label[lang][lbl]
+            lang_labels[lbl] = _aggregate(cases)
+            lang_cases.extend(cases)
+        all_cases.extend(lang_cases)
+        result_langs[lang] = {
+            "all": _aggregate(lang_cases),
+            "labels": lang_labels,
+        }
+
+    return {
+        "problem_count": len(all_problems),
+        "label_keys": LABEL_KEYS,
+        "languages": languages,
+        "overall": _aggregate(all_cases),
+        "per_language": result_langs,
     }
 
 

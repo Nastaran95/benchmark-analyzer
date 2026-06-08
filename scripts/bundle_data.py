@@ -28,7 +28,7 @@ DEFAULT_DATA_STORAGE = Path(
 )
 DEFAULT_OUTPUT = ROOT / "data" / "benchmark-bundle.json"
 
-LANGUAGES = ["minizinc", "CPMpy"]
+LANGUAGES = ["minizinc", "CPMpy", "pyCSP3"]
 CORRECTNESS_LABELS = [
     "non-executable",
     "equivalent",
