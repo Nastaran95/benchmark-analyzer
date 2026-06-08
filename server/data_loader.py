@@ -215,19 +215,15 @@ def compute_detailed_stats() -> dict[str, Any]:
                     continue
                 attempts_used = int(v.get("attempts_used") or 1)
                 ok = bool(v.get("ok"))
-                final_obs: str = v.get("final_observed_label") or ""
                 target: str = v.get("target_label_attempted") or lbl
                 history: list[dict[str, Any]] = v.get("attempt_history") or []
 
                 first_ok = bool(
                     history and history[0].get("observed_label") == lbl
                 )
-                opp = (
-                    not ok
-                    and bool(final_obs)
-                    and final_obs in VALID_LABELS
-                    and final_obs != target
-                )
+                # Opportunistic: the session succeeded but was targeting a different
+                # label slot — the result was captured under this slot incidentally.
+                opp = ok and target != lbl
 
                 per_lang_label[lang][lbl].append(
                     {
