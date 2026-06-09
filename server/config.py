@@ -13,12 +13,9 @@ BUNDLE_PATH = Path(
 JUDGE_CSV_PATH = Path(
     os.environ.get(
         "JUDGE_STATUS_CSV",
-        str(ROOT.parent / "CPJudgeBench" / "logs" / "judge-status.csv"),
+        str(ROOT / "data" / "judge-status.csv"),
     )
 )
-
-# Local copy kept in sync with the source on every API call.
-JUDGE_CSV_LOCAL = ROOT / "data" / "judge-status.csv"
 
 LANGUAGES = ["minizinc", "CPMpy", "pyCSP3"]
 

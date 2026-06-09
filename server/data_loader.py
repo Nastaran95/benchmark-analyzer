@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .config import BUNDLE_PATH, CORRECTNESS_LABELS, JUDGE_CSV_LOCAL, JUDGE_CSV_PATH, LANGUAGES
+from .config import BUNDLE_PATH, CORRECTNESS_LABELS, JUDGE_CSV_PATH, LANGUAGES
 
 
 class BundleNotFoundError(FileNotFoundError):
@@ -315,21 +315,15 @@ def get_problem_detail(
 def compute_judge_stats() -> dict[str, Any]:
     """Accuracy of each judge LLM per language and label (reference-free approach).
 
-    On every call the source CSV is copied into data/judge-status.csv so the
-    project folder always holds a fresh local snapshot.
+    Reads data/judge-status.csv — place the file there the same way
+    benchmark-bundle.json is placed (manually or via a preparation script).
     """
     import csv
-    import shutil
 
-    if JUDGE_CSV_PATH.is_file():
-        JUDGE_CSV_LOCAL.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(JUDGE_CSV_PATH, JUDGE_CSV_LOCAL)
-
-    read_path = JUDGE_CSV_LOCAL if JUDGE_CSV_LOCAL.is_file() else JUDGE_CSV_PATH
-    if not read_path.is_file():
+    if not JUDGE_CSV_PATH.is_file():
         return {"available": False}
 
-    with read_path.open(encoding="utf-8", newline="") as fh:
+    with JUDGE_CSV_PATH.open(encoding="utf-8", newline="") as fh:
         reader = csv.DictReader(fh)
         rows = [r for r in reader if r.get("approach") == "reference_free"]
 
