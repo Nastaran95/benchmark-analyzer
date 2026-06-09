@@ -5,6 +5,15 @@ Set-Location $root
 python scripts/bundle_data.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+$judgeSrc = Join-Path $root "..\CPJudgeBench\logs\judge-status.csv"
+$judgeDst = Join-Path $root "data\judge-status.csv"
+if (Test-Path $judgeSrc) {
+    Copy-Item -Path $judgeSrc -Destination $judgeDst -Force
+    Write-Host "Copied judge-status.csv -> data\"
+} else {
+    Write-Warning "judge-status.csv not found at $judgeSrc (judge stats table will be empty)"
+}
+
 # Stop any previous API on port 8000 so code changes are picked up
 $on8000 = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue |
   Select-Object -ExpandProperty OwningProcess -Unique

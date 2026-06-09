@@ -21,9 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ ./server/
 COPY data/benchmark-bundle.json ./data/benchmark-bundle.json
+COPY data/judge-status.csv ./data/judge-status.csv
 COPY --from=web /build/web/dist ./web/dist
 
-RUN test -f /app/data/benchmark-bundle.json
+RUN test -f /app/data/benchmark-bundle.json && \
+    test -f /app/data/judge-status.csv
 
 EXPOSE 8000
 
