@@ -17,6 +17,9 @@ JUDGE_CSV_PATH = Path(
     )
 )
 
+# Local copy kept in sync with the source on every API call.
+JUDGE_CSV_LOCAL = ROOT / "data" / "judge-status.csv"
+
 LANGUAGES = ["minizinc", "CPMpy", "pyCSP3"]
 
 CORRECTNESS_LABELS = [
