@@ -85,3 +85,26 @@ export type DetailedStats = {
   overall: CaseStats;
   per_language: Record<string, LangDetailStats>;
 };
+
+export type JudgeAccEntry = {
+  acc: number | null;
+  n: number;
+};
+
+export type JudgeLabelStats = {
+  cases: number;
+  per_judge: Record<string, JudgeAccEntry>;
+};
+
+export type JudgeLangStats = {
+  overall: JudgeLabelStats;
+  labels: Record<string, JudgeLabelStats>;
+};
+
+export type JudgeStats = {
+  available: boolean;
+  judge_llms: string[];
+  label_keys: string[];
+  languages: string[];
+  per_language: Record<string, JudgeLangStats>;
+};

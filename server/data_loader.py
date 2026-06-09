@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .config import BUNDLE_PATH, CORRECTNESS_LABELS, LANGUAGES
+from .config import BUNDLE_PATH, CORRECTNESS_LABELS, JUDGE_CSV_PATH, LANGUAGES
 
 
 class BundleNotFoundError(FileNotFoundError):
@@ -309,4 +309,79 @@ def get_problem_detail(
             "generator_llm": status.get("generator_llm") if status else generated.get("llm"),
         },
         "generated_codes": generated,
+    }
+
+
+def compute_judge_stats() -> dict[str, Any]:
+    """Accuracy of each judge LLM per language and label (reference-free approach)."""
+    import csv
+
+    if not JUDGE_CSV_PATH.is_file():
+        return {"available": False}
+
+    with JUDGE_CSV_PATH.open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        rows = [r for r in reader if r.get("approach") == "reference_free"]
+
+    if not rows:
+        return {"available": False}
+
+    LABEL_KEYS = [
+        "equivalent",
+        "unsound",
+        "incomplete",
+        "unsound-incomplete",
+        "non-executable",
+    ]
+
+    judge_llms: list[str] = sorted({r["judge_llm"] for r in rows})
+    languages: list[str] = sorted({r["language"] for r in rows})
+
+    def _acc(subset: list[dict[str, str]]) -> dict[str, Any]:
+        """Return {judge_llm: {acc, n}} over *subset* rows."""
+        per_judge: dict[str, Any] = {}
+        for judge in judge_llms:
+            jrows = [r for r in subset if r["judge_llm"] == judge]
+            if not jrows:
+                per_judge[judge] = {"acc": None, "n": 0}
+            else:
+                correct = sum(1 for r in jrows if r["succeed"] == "yes")
+                per_judge[judge] = {
+                    "acc": round(correct / len(jrows) * 100, 1),
+                    "n": len(jrows),
+                }
+        return per_judge
+
+    def _cases(subset: list[dict[str, str]]) -> int:
+        """Unique benchmark items (problem_id × label) regardless of judge."""
+        return len({(r["problem_id"], r["label"]) for r in subset})
+
+    per_language: dict[str, Any] = {}
+    for lang in languages:
+        lang_rows = [r for r in rows if r["language"] == lang]
+
+        labels_stats: dict[str, Any] = {}
+        for lbl in LABEL_KEYS:
+            lbl_rows = [r for r in lang_rows if r["label"] == lbl]
+            if not lbl_rows:
+                continue
+            labels_stats[lbl] = {
+                "cases": _cases(lbl_rows),
+                "per_judge": _acc(lbl_rows),
+            }
+
+        per_language[lang] = {
+            "overall": {
+                "cases": _cases(lang_rows),
+                "per_judge": _acc(lang_rows),
+            },
+            "labels": labels_stats,
+        }
+
+    return {
+        "available": True,
+        "judge_llms": judge_llms,
+        "label_keys": LABEL_KEYS,
+        "languages": languages,
+        "per_language": per_language,
     }

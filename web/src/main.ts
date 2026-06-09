@@ -1,11 +1,12 @@
 import "./styles.css";
-import type { DetailedStats, Meta, ProblemDetail, ProblemSummary, TableRow } from "./types";
+import type { DetailedStats, JudgeStats, Meta, ProblemDetail, ProblemSummary, TableRow } from "./types";
 
 const app = document.getElementById("app")!;
 
 let meta: Meta | null = null;
 let rows: TableRow[] = [];
 let detailedStats: DetailedStats | null = null;
+let judgeStats: JudgeStats | null = null;
 let activeCodeTab = 0;
 
 function cellKey(language: string, label: string): string {
@@ -534,6 +535,94 @@ function renderDetailedStats(): string {
     </div>`;
 }
 
+const JUDGE_LLM_DISPLAY: Record<string, string> = {
+  "anthropic/claude-sonnet-4.6": "Claude Sonnet 4.6",
+  "qwen/qwen3-8b": "Qwen3-8B",
+};
+
+function judgeDisplayName(llm: string): string {
+  return JUDGE_LLM_DISPLAY[llm] ?? llm.split("/").pop() ?? llm;
+}
+
+function judgeAccCell(acc: number | null): string {
+  if (acc === null) return `<td class="jstat-num jstat-acc">—</td>`;
+  const cls = acc >= 80 ? "rate-high" : acc >= 50 ? "rate-mid" : "rate-low";
+  return `<td class="jstat-num jstat-acc">
+    <span class="dstat-rate ${cls}">${acc.toFixed(1)}%</span>
+  </td>`;
+}
+
+function renderJudgeStats(): string {
+  const js = judgeStats;
+  if (!js?.available) return "";
+
+  const judgeCount = js.judge_llms.length;
+  const headerJudges = js.judge_llms
+    .map((j) => `<th class="jstat-num jstat-judge-col" colspan="1">${escapeHtml(judgeDisplayName(j))}</th>`)
+    .join("");
+
+  const langBlocks = js.languages.map((lang) => {
+    const ld = js.per_language[lang];
+    if (!ld) return "";
+
+    const overallAccCells = js.judge_llms.map((j) => judgeAccCell(ld.overall.per_judge[j]?.acc ?? null)).join("");
+
+    const labelRows = js.label_keys
+      .map((lbl) => {
+        const s = ld.labels[lbl];
+        if (!s) return "";
+        const colorCls = LABEL_COLOR_CLASS[lbl] ?? "";
+        const shortLbl = LABEL_SHORT[lbl] ?? lbl;
+        const accCells = js.judge_llms.map((j) => judgeAccCell(s.per_judge[j]?.acc ?? null)).join("");
+        return `<tr class="jstat-sub ${colorCls}">
+          <td class="jstat-label-col jstat-sub-label">
+            <span class="dstat-short" title="${escapeHtml(lbl)}">${escapeHtml(shortLbl)}</span>
+          </td>
+          <td class="jstat-num jstat-cases">${s.cases}</td>
+          ${accCells}
+        </tr>`;
+      })
+      .join("");
+
+    return `
+      <tbody class="jstat-lang-group">
+        <tr class="jstat-lang-header">
+          <td colspan="${2 + judgeCount}" class="jstat-lang-name">${escapeHtml(lang)}</td>
+        </tr>
+        <tr class="jstat-overall-row">
+          <td class="jstat-label-col jstat-all-label"><strong>All</strong></td>
+          <td class="jstat-num jstat-cases">${ld.overall.cases}</td>
+          ${overallAccCells}
+        </tr>
+        ${labelRows}
+      </tbody>`;
+  }).join("");
+
+  return `
+    <div class="stats-card jstat-card">
+      <h2 class="stats-heading">
+        Judge Accuracy
+        <span class="stats-subtitle">(reference-free · each case = problem–language–label)</span>
+      </h2>
+      <div class="stats-table-wrap">
+        <table class="dstat-table jstat-table">
+          <thead>
+            <tr>
+              <th class="jstat-label-col">Label</th>
+              <th class="jstat-num" title="Unique benchmark cases">Cases</th>
+              ${headerJudges}
+            </tr>
+          </thead>
+          ${langBlocks}
+        </table>
+      </div>
+      <p class="dstat-note">
+        <em>Accuracy = fraction of cases where judgment matches the expected label ·
+        Cases = unique problem–label pairs per language</em>
+      </p>
+    </div>`;
+}
+
 function renderPage(filter = "", familyFilter = ""): void {
   const families = [...new Set(rows.map((r) => r.family))].sort();
   const familyOptions = families
@@ -552,6 +641,7 @@ function renderPage(filter = "", familyFilter = ""): void {
     </header>
     ${renderStats()}
     ${renderDetailedStats()}
+    ${renderJudgeStats()}
     <div class="toolbar">
       <label>
         Search
@@ -790,10 +880,11 @@ function renderModal(detail: ProblemDetail): void {
 async function init(): Promise<void> {
   app.innerHTML = `<div class="loading">Loading benchmark data…</div>`;
   try {
-    const [metaRes, tableRes, statsRes] = await Promise.all([
+    const [metaRes, tableRes, statsRes, judgeRes] = await Promise.all([
       fetch("/api/meta"),
       fetch("/api/table"),
       fetch("/api/stats"),
+      fetch("/api/judge-stats"),
     ]);
     if (!metaRes.ok || !tableRes.ok) {
       throw new Error("API request failed");
@@ -805,6 +896,10 @@ async function init(): Promise<void> {
     );
     if (statsRes.ok) {
       detailedStats = await statsRes.json();
+    }
+    if (judgeRes.ok) {
+      const js: JudgeStats = await judgeRes.json();
+      if (js.available) judgeStats = js;
     }
     renderPage();
   } catch (err) {

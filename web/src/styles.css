@@ -808,6 +808,95 @@ table.benchmark-table tr.row-excluded-generation td.sticky-col-3 {
   line-height: 1.5;
 }
 
+/* ── Judge accuracy table ── */
+.jstat-card {
+  margin-top: 0;
+}
+
+.jstat-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  width: auto;
+  min-width: 420px;
+}
+
+.jstat-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+  padding: 0.4rem 0.7rem 0.5rem;
+  white-space: nowrap;
+}
+
+.jstat-table td {
+  padding: 0.32rem 0.7rem;
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.jstat-label-col {
+  text-align: left !important;
+  min-width: 80px;
+}
+
+.jstat-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+
+.jstat-cases {
+  color: var(--muted);
+  min-width: 44px;
+}
+
+.jstat-judge-col {
+  min-width: 110px;
+}
+
+.jstat-lang-header td {
+  background: var(--surface-2);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.jstat-lang-name {
+  color: var(--accent);
+}
+
+.jstat-overall-row td {
+  background: color-mix(in srgb, var(--surface-2) 30%, transparent);
+  font-weight: 600;
+}
+
+.jstat-sub .jstat-label-col {
+  padding-left: 1.4rem;
+}
+
+.jstat-all-label strong {
+  color: var(--text);
+}
+
+.jstat-sub-label {
+  color: var(--muted);
+}
+
+/* Reuse label short colours */
+.lstat-eq      .jstat-sub-label .dstat-short { color: #2dd4a0; }
+.lstat-uns     .jstat-sub-label .dstat-short { color: #f87171; }
+.lstat-inc     .jstat-sub-label .dstat-short { color: #fb923c; }
+.lstat-mix     .jstat-sub-label .dstat-short { color: #c084fc; }
+.lstat-nonexec .jstat-sub-label .dstat-short { color: #94a3b8; }
+
 /* ── Metrics row (FP / FN / Candidate space) ── */
 .metrics-row {
   display: flex;
